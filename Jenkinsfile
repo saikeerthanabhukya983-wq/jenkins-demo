@@ -2,30 +2,44 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "bhukyakeerthana/node-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKER_IMAGE = "bhukyakeerthana/node-app"
+        TAG = "${BUILD_NUMBER}"
     }
 
     stages {
 
-        stage('Build Image') {
+        stage('Checkout Code') {
             steps {
-                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                git 'https://github.com/saikeerthanabhukya983-wq/jenkins-demo.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %DOCKER_IMAGE%:%TAG% ."
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat "docker login -u %USER% -p %PASS%"
+                }
             }
         }
 
         stage('Push Image') {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub-creds', url: '') {
-                    bat "docker push %IMAGE_NAME%:%IMAGE_TAG%"
-                }
+                bat "docker push %DOCKER_IMAGE%:%TAG%"
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    bat "kubectl set image deployment/node-app-deployment node-app=%IMAGE_NAME%:%IMAGE_TAG%"
+                    bat """
+                    kubectl set image deployment/node-app-deployment node-app=%DOCKER_IMAGE%:%TAG%
+                    """
                 }
             }
         }
