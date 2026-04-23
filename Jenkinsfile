@@ -36,14 +36,14 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) stage('Deploy to Kubernetes') {
-    steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-            bat """
-            C:\\Users\\KEERTHANA\\Downloads\\helm-v3.14.0-windows-amd64\\windows-amd64\\helm.exe upgrade --install node-app ./node-app-chart ^
-            --set image.repository=bhukyakeerthana/node-app ^
-            --set image.tag=%BUILD_NUMBER%
-            """
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    bat """
+                    C:\\Users\\KEERTHANA\\Downloads\\helm-v3.14.0-windows-amd64\\windows-amd64\\helm.exe upgrade --install node-app ./node-app-chart ^
+                    --set image.repository=bhukyakeerthana/node-app ^
+                    --set image.tag=%BUILD_NUMBER%
+                    """
+                }
+            }
         }
     }
 }
